@@ -5,9 +5,11 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { LoggerModule } from 'nestjs-pino';
 import { HttpExceptionFilter } from './filters/http.exception.filter';
+import { ConfigModule } from '@nestjs/config';
+import { validate } from './config/env';
 
 @Module({
-  imports: [LoggerModule.forRoot()],
+  imports: [LoggerModule.forRoot(), ConfigModule.forRoot({ validate })],
   controllers: [AppController],
   providers: [
     AppService,
