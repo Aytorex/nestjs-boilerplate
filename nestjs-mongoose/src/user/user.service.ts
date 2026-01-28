@@ -3,11 +3,11 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { CreateUserBodyDto } from './dtos/request/create-user.dto';
 import { InjectModel } from '@nestjs/mongoose';
-import { User } from './user.schema';
 import { Model, Types } from 'mongoose';
+import { CreateUserBodyDto } from './dtos/request/create-user.dto';
 import { UpdateUserBodyDto } from './dtos/request/update-user.dto';
+import { User } from './user.schema';
 
 @Injectable()
 export class UserService {
@@ -19,6 +19,7 @@ export class UserService {
     if (await this.userNameExists(createUserBodyDto.name)) {
       throw new ConflictException();
     }
+
     return this.userModel.create(createUserBodyDto);
   }
 
@@ -26,16 +27,15 @@ export class UserService {
     id: Types.ObjectId,
     updateUserDto: UpdateUserBodyDto,
   ): Promise<User> {
-    if (await this.userNameExists(updateUserDto.name)) {
-      throw new ConflictException();
+    const { name } = updateUserDto;
+    if (name && (await this.userNameExistsExcluding(name, id))) {
+      throw new ConflictException('This name is already taken');
     }
 
     const updatedUser = await this.userModel.findByIdAndUpdate(
-      { _id: id },
+      id,
       updateUserDto,
-      {
-        new: true,
-      },
+      { new: true },
     );
 
     if (updatedUser === null) {
@@ -46,7 +46,7 @@ export class UserService {
   }
 
   async delete(id: Types.ObjectId): Promise<User> {
-    const deletedUser = await this.userModel.findByIdAndDelete({ _id: id });
+    const deletedUser = await this.userModel.findByIdAndDelete(id);
 
     if (deletedUser === null) {
       throw new NotFoundException();
@@ -56,10 +56,18 @@ export class UserService {
   }
 
   private async userNameExists(name: string): Promise<boolean> {
+    const found = await this.userModel.findOne({ name });
+    return found !== null;
+  }
+
+  private async userNameExistsExcluding(
+    name: string,
+    excludeId: Types.ObjectId,
+  ): Promise<boolean> {
     const found = await this.userModel.findOne({
       name,
+      _id: { $ne: excludeId },
     });
-
     return found !== null;
   }
 }

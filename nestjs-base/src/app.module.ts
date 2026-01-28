@@ -1,12 +1,12 @@
-import { ZodValidationPipe, ZodSerializerInterceptor } from 'nestjs-zod';
-import { APP_PIPE, APP_INTERCEPTOR, APP_FILTER } from '@nestjs/core';
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { LoggerModule } from 'nestjs-pino';
-import { HttpExceptionFilter } from './filters/http.exception.filter';
 import { ConfigModule } from '@nestjs/config';
+import { APP_FILTER, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
+import { LoggerModule } from 'nestjs-pino';
+import { ZodSerializerInterceptor, ZodValidationPipe } from 'nestjs-zod';
+import { AppController } from 'src/app.controller';
+import { AppService } from './app.service';
 import { validate } from './config/env';
+import { HttpExceptionFilter } from './filters/http.exception.filter';
 
 @Module({
   imports: [LoggerModule.forRoot(), ConfigModule.forRoot({ validate })],
